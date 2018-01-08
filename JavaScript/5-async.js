@@ -1,44 +1,44 @@
 'use strict';
 
+const duplicate = (factory, n) => (
+  new Array(n).fill().map(() => factory())
+);
+
 const poolify = (factory, min, norm, max) => {
-
-  const duplicate = n => new Array(n).fill().map(() => factory());
-
+  let allocated = norm;
   const pool = (par) => {
     if (typeof(par) !== 'function') {
       if (pool.items.length < max) {
         const delayed = pool.delayed.pop();
         if (delayed) {
-          console.log('Recycle item, pass to delayed');
+          console.log('Recycle item, pass to delayed', pool.items.length);
           delayed(par);
-          return;
         } else {
+          console.log('Recycle item, add to pool', pool.items.length);
           pool.items.push(par);
         }
       }
-      console.log('Recycle item, count =', pool.items.length);
       return;
     }
-    if (pool.items.length < min) {
-      const items = duplicate(norm - pool.items.length);
+    if (pool.items.length < min && allocated < max) {
+      const grow = Math.min(max - allocated, norm - pool.items.length);
+      allocated += grow;
+      const items = duplicate(factory, grow);
       pool.items.push(...items);
     }
     const res = pool.items.pop();
-    console.log('Get from pool, count =', pool.items.length);
     if (res) {
+      console.log('Get from pool, pass to callback', pool.items.length);
       par(res);
     } else {
+      console.log('Get from pool, add callback to queue', pool.items.length);
       pool.delayed.push(par);
-      console.log('Request delayed');
     }
-    return pool;
   };
-
   return Object.assign(pool, {
-    items: duplicate(norm),
+    items: duplicate(factory, norm),
     delayed: []
   });
-
 };
 
 // Usage
@@ -47,15 +47,14 @@ const poolify = (factory, min, norm, max) => {
 const buffer = () => new Uint32Array(128);
 
 // Allocate pool of 10 buffers
-const pool = poolify(buffer, 0, 5, 10);
+const pool = poolify(buffer, 3, 5, 7);
 
 let i = 0;
 
 const next = () => {
   pool(item => {
-    console.log('Buffer size', item.length * 32);
     i++;
-    if (i < 10) {
+    if (i < 20) {
       setTimeout(next, i * 10);
       setTimeout(() => pool(item), i * 100);
     }
