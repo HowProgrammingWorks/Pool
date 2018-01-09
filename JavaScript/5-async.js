@@ -9,7 +9,7 @@ const poolify = (factory, min, norm, max) => {
   const pool = (par) => {
     if (typeof(par) !== 'function') {
       if (pool.items.length < max) {
-        const delayed = pool.delayed.pop();
+        const delayed = pool.delayed.shift();
         if (delayed) {
           console.log('Recycle item, pass to delayed', pool.items.length);
           delayed(par);
