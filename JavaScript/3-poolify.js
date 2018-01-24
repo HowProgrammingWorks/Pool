@@ -22,7 +22,7 @@ const poolify = (factory, size) => {
 // Usage
 
 // Factory to allocate 4kb buffer
-const buffer = () => new Uint32Array(128);
+const buffer = () => new Uint32Array(1024);
 
 // Allocate pool of 10 buffers
 const pool = poolify(buffer, 10);

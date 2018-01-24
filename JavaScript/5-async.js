@@ -44,7 +44,7 @@ const poolify = (factory, min, norm, max) => {
 // Usage
 
 // Factory to allocate 4kb buffer
-const buffer = () => new Uint32Array(128);
+const buffer = () => new Uint32Array(1024);
 
 // Allocate pool of 10 buffers
 const pool = poolify(buffer, 3, 5, 7);
@@ -56,7 +56,7 @@ const next = () => {
     i++;
     if (i < 20) {
       setTimeout(next, i * 10);
-      setTimeout(() => pool(item), i * 100);
+      setTimeout(pool, i * 100, item);
     }
   });
 };
