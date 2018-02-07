@@ -6,39 +6,43 @@ const duplicate = (factory, n) => (
 
 const poolify = (factory, min, norm, max) => {
   let allocated = norm;
-  const pool = (par) => {
+  const items = duplicate(factory, norm);
+  const delayed = [];
+
+  return (par) => {
     if (typeof(par) !== 'function') {
-      if (pool.items.length < max) {
-        const delayed = pool.delayed.shift();
-        if (delayed) {
-          console.log('Recycle item, pass to delayed', pool.items.length);
-          delayed(par);
+      if (items.length < max) {
+        const request = delayed.shift();
+        if (request) {
+          const c1 = items.length;
+          console.log(`${c1}->${c1} Recycle item, pass to delayed`);
+          request(par);
         } else {
-          console.log('Recycle item, add to pool', pool.items.length);
-          pool.items.push(par);
+          const c1 = items.length;
+          items.push(par);
+          const c2 = items.length;
+          console.log(`${c1}->${c2} Recycle item, add to pool`);
         }
       }
       return;
     }
-    if (pool.items.length < min && allocated < max) {
-      const grow = Math.min(max - allocated, norm - pool.items.length);
+    if (items.length < min && allocated < max) {
+      const grow = Math.min(max - allocated, norm - items.length);
       allocated += grow;
-      const items = duplicate(factory, grow);
-      pool.items.push(...items);
+      const instances = duplicate(factory, grow);
+      items.push(...instances);
     }
-    const res = pool.items.pop();
+    const c1 = items.length;
+    const res = items.pop();
+    const c2 = items.length;
     if (res) {
-      console.log('Get from pool, pass to callback', pool.items.length);
+      console.log(`${c1}->${c2} Get from pool, pass to callback`);
       par(res);
     } else {
-      console.log('Get from pool, add callback to queue', pool.items.length);
-      pool.delayed.push(par);
+      console.log(`${c1}->${c2} Get from pool, add callback to queue`);
+      delayed.push(par);
     }
   };
-  return Object.assign(pool, {
-    items: duplicate(factory, norm),
-    delayed: []
-  });
 };
 
 // Usage
