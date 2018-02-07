@@ -1,22 +1,19 @@
 'use strict';
 
 const poolify = (factory, size) => {
+  const items = new Array(size).fill(null).map(() => factory());
 
-  const pool = (item) => {
+  return (item) => {
     if (item) {
-      pool.items.push(item);
-      console.log('Recycle item, count =', pool.items.length);
+      items.push(item);
+      console.log('Recycle item, count =', items.length);
       return;
     }
-    const res = pool.items.pop() || factory();
+    const res = items.pop() || factory();
 
-    console.log('Get from pool, count =', pool.items.length);
+    console.log('Get from pool, count =', items.length);
     return res;
   };
-
-  const items = new Array(size).fill().map(() => factory());
-  return Object.assign(pool, { items });
-
 };
 
 // Usage

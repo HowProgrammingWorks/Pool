@@ -1,30 +1,25 @@
 'use strict';
 
 const poolify = (factory, min, norm, max) => {
-
   const duplicate = n => new Array(n).fill().map(() => factory());
+  const items = duplicate(norm);
 
-  const pool = (item) => {
+  return (item) => {
     if (item) {
-      if (pool.items.length < max) {
-        pool.items.push(item);
+      if (items.length < max) {
+        items.push(item);
       }
-      console.log('Recycle item, count =', pool.items.length);
+      console.log('Recycle item, count =', items.length);
       return;
     }
-    if (pool.items.length < min) {
-      const items = duplicate(norm - pool.items.length);
-      pool.items.push(...items);
+    if (items.length < min) {
+      const instances = duplicate(norm - items.length);
+      items.push(...instances);
     }
-    const res = pool.items.pop();
-
-    console.log('Get from pool, count =', pool.items.length);
+    const res = items.pop();
+    console.log('Get from pool, count =', items.length);
     return res;
   };
-
-  const items = duplicate(norm);
-  return Object.assign(pool, { items });
-
 };
 
 // Usage
