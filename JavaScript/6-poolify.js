@@ -19,28 +19,26 @@ const provide = callback => item => {
 
 const poolify = (factory, min, norm, max) => {
   let allocated = norm;
-  const pool = (par) => {
+  const items = duplicate(factory, norm);
+  const delayed = [];
+  return (par) => {
     if (par[poolified]) {
-      const delayed = pool.delayed.shift();
-      if (delayed) delayed(par);
-      else pool.items.push(par);
+      const request = delayed.shift();
+      if (request) request(par);
+      else items.push(par);
       return;
     }
     const callback = provide(par);
-    if (pool.items.length < min && allocated < max) {
-      const grow = Math.min(max - allocated, norm - pool.items.length);
+    if (items.length < min && allocated < max) {
+      const grow = Math.min(max - allocated, norm - items.length);
       allocated += grow;
-      const items = duplicate(factory, grow);
-      pool.items.push(...items);
+      const instances = duplicate(factory, grow);
+      items.push(...instances);
     }
-    const res = pool.items.pop();
+    const res = items.pop();
     if (res) callback(res);
-    else pool.delayed.push(callback);
+    else delayed.push(callback);
   };
-  return Object.assign(pool, {
-    items: duplicate(factory, norm),
-    delayed: []
-  });
 };
 
 // Usage
