@@ -3,7 +3,7 @@
 const poolify = (factory, min, norm, max) => {
   const duplicate = n => new Array(n).fill().map(() => factory());
 
-  const pool = (item) => {
+  const pool = item => {
     if (item) {
       if (pool.allocated <= max) {
         pool.items.push(item);
@@ -27,6 +27,8 @@ const poolify = (factory, min, norm, max) => {
   const items = duplicate(norm);
   return Object.assign(pool, { items, allocated: norm });
 };
+
+// Usage
 
 const buffer = () => new Uint32Array(1024);
 
