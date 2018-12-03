@@ -21,7 +21,7 @@ const poolify = (factory, min, norm, max) => {
   let allocated = norm;
   const items = duplicate(factory, norm);
   const delayed = [];
-  return (par) => {
+  return par => {
     if (par[poolified]) {
       const request = delayed.shift();
       if (request) request(par);
