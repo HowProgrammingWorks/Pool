@@ -9,7 +9,7 @@ const poolify = (factory, min, norm, max) => {
   const items = duplicate(factory, norm);
   const delayed = [];
 
-  return par => {
+  return (par) => {
     if (typeof par !== 'function') {
       if (items.length < max) {
         const request = delayed.shift();
@@ -56,7 +56,7 @@ const pool = poolify(buffer, 3, 5, 7);
 let i = 0;
 
 const next = () => {
-  pool(item => {
+  pool((item) => {
     i++;
     if (i < 20) {
       setTimeout(next, i * 10);

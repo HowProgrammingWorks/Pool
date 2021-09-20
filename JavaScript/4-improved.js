@@ -1,10 +1,10 @@
 'use strict';
 
 const poolify = (factory, min, norm, max) => {
-  const duplicate = n => new Array(n).fill().map(() => factory());
+  const duplicate = (n) => new Array(n).fill().map(() => factory());
   const items = duplicate(norm);
 
-  return item => {
+  return (item) => {
     if (item) {
       if (items.length < max) {
         items.push(item);

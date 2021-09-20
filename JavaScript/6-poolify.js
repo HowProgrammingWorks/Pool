@@ -11,7 +11,7 @@ const duplicate = (factory, n) => (
   })
 );
 
-const provide = callback => item => {
+const provide = (callback) => (item) => {
   setImmediate(() => {
     callback(item);
   });
@@ -21,7 +21,7 @@ const poolify = (factory, min, norm, max) => {
   let allocated = norm;
   const items = duplicate(factory, norm);
   const delayed = [];
-  return par => {
+  return (par) => {
     if (par[poolified]) {
       const request = delayed.shift();
       if (request) request(par);
@@ -43,18 +43,18 @@ const poolify = (factory, min, norm, max) => {
 
 // Usage
 
-const adder = a => b => adder(a + b);
+const adder = (a) => (b) => adder(a + b);
 
 const pool = poolify(adder, 1, 2, 3);
 
 console.log('request Item1');
-pool(item1 => {
+pool((item1) => {
   console.log('get Item1');
   console.log('request Item2');
-  pool(item2 => {
+  pool((item2) => {
     console.log('get Item2');
     console.log('request Item3');
-    pool(item3 => {
+    pool((item3) => {
       console.log('get Item3');
       setTimeout(() => {
         pool(item3);
@@ -62,7 +62,7 @@ pool(item1 => {
       }, 50);
     });
     console.log('request Item4');
-    pool(item4 => {
+    pool((item4) => {
       console.log('get Item4');
       setTimeout(() => {
         pool(item4);

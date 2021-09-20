@@ -3,7 +3,7 @@
 const poolify = (factory, size) => {
   const items = new Array(size).fill(null).map(() => factory());
 
-  return item => {
+  return (item) => {
     if (item) {
       items.push(item);
       console.log('Recycle item, count =', items.length);
