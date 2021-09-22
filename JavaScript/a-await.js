@@ -23,8 +23,8 @@ class Pool {
       item = this.items[this.current];
       free = this.free[this.current];
       this.current++;
+      if (this.current === this.size) this.current = 0;
     } while (!item || !free);
-    if (this.current === this.size) this.current = 0;
     return item;
   }
 
@@ -62,10 +62,12 @@ class Pool {
 
 (async () => {
   const pool = new Pool();
-  pool.add({ item: 1 });
-  pool.add({ item: 2 });
-  const last = { item: 3 };
-  pool.add(last);
+  const item1 = { item: 1 }
+  pool.add(item1);
+  const item2 = { item: 2 }
+  pool.add(item2);
+  const item3 = { item: 3 };
+  pool.add(item3);
 
   const x1 = await pool.capture();
   console.log({ x1 });
@@ -84,7 +86,7 @@ class Pool {
     console.log({ x6 });
   });
 
-  pool.release(x2);
-  pool.release(x1);
-  pool.release(x3);
+  pool.release(item2);
+  pool.release(item1);
+  pool.release(item3);
 })();

@@ -30,8 +30,8 @@ class Pool {
       item = this.items[this.current];
       free = this.free[this.current];
       this.current++;
+      if (this.current === this.size) this.current = 0;
     } while (!item || !free);
-    if (this.current === this.size) this.current = 0;
     return item;
   }
 
@@ -98,5 +98,5 @@ class Pool {
   pool.release(x1);
   setTimeout(() => {
     pool.release(x3);
-  }, 3000);
+  }, 6000);
 })();
