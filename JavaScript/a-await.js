@@ -62,9 +62,9 @@ class Pool {
 
 (async () => {
   const pool = new Pool();
-  const item1 = { item: 1 }
+  const item1 = { item: 1 };
   pool.add(item1);
-  const item2 = { item: 2 }
+  const item2 = { item: 2 };
   pool.add(item2);
   const item3 = { item: 3 };
   pool.add(item3);
