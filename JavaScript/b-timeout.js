@@ -55,9 +55,10 @@ class Pool {
   release(item) {
     const index = this.items.indexOf(item);
     if (index < 0) throw new Error('Pool: release unexpected item');
-    if (this.free[index]) throw new Error('Pool: release not captured');
-    this.free[index] = true;
-    this.available++;
+    if (!this.free[index]) {
+      this.free[index] = true;
+      this.available++;
+    } else throw new Error('Pool: release not captured');
     if (this.queue.length > 0) {
       const { resolve, timer } = this.queue.shift();
       clearTimeout(timer);
