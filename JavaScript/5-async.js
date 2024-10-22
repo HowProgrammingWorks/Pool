@@ -1,8 +1,6 @@
 'use strict';
 
-const duplicate = (factory, n) => (
-  new Array(n).fill().map(() => factory())
-);
+const duplicate = (factory, n) => new Array(n).fill().map(() => factory());
 
 const poolify = (factory, min, norm, max) => {
   let allocated = norm;

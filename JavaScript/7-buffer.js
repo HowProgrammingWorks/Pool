@@ -14,7 +14,7 @@ const poolify = (factory, min, norm, max) => {
       console.dir({
         action: 'Recycle item',
         length: pool.items.length,
-        allocated: pool.allocated
+        allocated: pool.allocated,
       });
       return;
     }
@@ -28,7 +28,7 @@ const poolify = (factory, min, norm, max) => {
     console.dir({
       action: 'Get item',
       length: pool.items.length,
-      allocated: pool.allocated
+      allocated: pool.allocated,
     });
     return res;
   };

@@ -4,12 +4,11 @@ const poolified = Symbol('poolified');
 
 const mixFlag = { [poolified]: true };
 
-const duplicate = (factory, n) => (
+const duplicate = (factory, n) =>
   new Array(n).fill().map(() => {
     const instance = factory();
     return Object.assign(instance, mixFlag);
-  })
-);
+  });
 
 const provide = (callback) => (item) => {
   setImmediate(() => {
