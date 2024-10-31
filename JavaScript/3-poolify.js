@@ -7,7 +7,7 @@ const poolify = (factory, size) => {
     if (item) {
       items.push(item);
       console.log('Recycle item, count =', items.length);
-      return;
+      return null;
     }
     const res = items.pop() || factory();
 
@@ -18,7 +18,7 @@ const poolify = (factory, size) => {
 
 // Usage
 
-// Factory to allocate 4kb buffer
+// Factory to allocate 32kb buffer
 const buffer = () => new Uint32Array(1024);
 
 // Allocate pool of 10 buffers

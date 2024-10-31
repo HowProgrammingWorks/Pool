@@ -16,7 +16,7 @@ const poolify = (factory, min, norm, max) => {
         length: pool.items.length,
         allocated: pool.allocated,
       });
-      return;
+      return null;
     }
     if (pool.items.length < min) {
       const items = duplicate(norm - pool.items.length);
@@ -37,7 +37,10 @@ const poolify = (factory, min, norm, max) => {
   return Object.assign(pool, { items, allocated: norm });
 };
 
-const factorify = (Category, ...args) => () => new Category(...args);
+const factorify =
+  (Category, ...args) =>
+  () =>
+    new Category(...args);
 
 // Usage
 

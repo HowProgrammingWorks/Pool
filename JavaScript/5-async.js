@@ -58,7 +58,7 @@ const next = () => {
     i++;
     if (i < 20) {
       setTimeout(next, i * 10);
-      setTimeout(pool, i * 100, item);
+      setTimeout(() => pool(item), i * 100);
     }
   });
 };

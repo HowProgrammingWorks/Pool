@@ -10,7 +10,7 @@ const poolify = (factory, min, norm, max) => {
         items.push(item);
       }
       console.log('Recycle item, count =', items.length);
-      return;
+      return null;
     }
     if (items.length < min) {
       const instances = duplicate(norm - items.length);

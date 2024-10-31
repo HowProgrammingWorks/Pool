@@ -88,11 +88,14 @@ class Pool {
   pool.capture().then((x5) => {
     console.log({ x5 });
   });
-  pool.capture().then((x6) => {
-    console.log({ x6 });
-  }).catch((err) => {
-    console.error({ err });
-  });
+  pool
+    .capture()
+    .then((x6) => {
+      console.log({ x6 });
+    })
+    .catch((err) => {
+      console.error({ err });
+    });
 
   pool.release(x2);
   pool.release(x1);
