@@ -2,46 +2,48 @@
 
 class Pool {
   constructor() {
-    this.items = [];
+    this.instances = [];
     this.free = [];
     this.current = 0;
     this.size = 0;
     this.available = 0;
   }
 
-  next() {
+  acquire() {
     if (this.available === 0) return null;
-    let item = null;
+    let instance = null;
     let free = false;
     do {
-      item = this.items[this.current];
+      instance = this.instances[this.current];
       free = this.free[this.current];
       this.current++;
       if (this.current === this.size) this.current = 0;
-    } while (!item || !free);
-    return item;
+    } while (!instance || !free);
+    return instance;
   }
 
-  add(item) {
-    if (this.items.includes(item)) throw new Error('Pool: add duplicates');
+  add(instance) {
+    if (this.instances.includes(instance)) {
+      throw new Error('Pool: add duplicates');
+    }
     this.size++;
     this.available++;
-    this.items.push(item);
+    this.instances.push(instance);
     this.free.push(true);
   }
 
   capture() {
-    const item = this.next();
-    if (!item) return null;
-    const index = this.items.indexOf(item);
+    const instance = this.acquire();
+    if (!instance) return null;
+    const index = this.instances.indexOf(instance);
     this.free[index] = false;
     this.available--;
-    return item;
+    return instance;
   }
 
-  release(item) {
-    const index = this.items.indexOf(item);
-    if (index < 0) throw new Error('Pool: release unexpected item');
+  release(instance) {
+    const index = this.instances.indexOf(instance);
+    if (index < 0) throw new Error('Pool: release unexpected instance');
     if (this.free[index]) throw new Error('Pool: release not captured');
     this.free[index] = true;
     this.available++;
@@ -51,9 +53,9 @@ class Pool {
 // Usage
 
 const pool = new Pool();
-pool.add({ item: 1 });
-pool.add({ item: 2 });
-const last = { item: 3 };
+pool.add({ instance: 1 });
+pool.add({ instance: 2 });
+const last = { instance: 3 };
 pool.add(last);
 
 for (let i = 0; i < 10; i++) {

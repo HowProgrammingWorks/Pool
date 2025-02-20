@@ -2,30 +2,32 @@
 
 class Pool {
   constructor() {
-    this.items = [];
+    this.instances = [];
     this.current = 0;
   }
 
-  next() {
-    const item = this.items[this.current];
+  acquire() {
+    const instance = this.instances[this.current];
     this.current++;
-    if (this.current === this.items.length) this.current = 0;
-    return item;
+    if (this.current === this.instances.length) this.current = 0;
+    return instance;
   }
 
-  add(item) {
-    if (this.items.includes(item)) throw new Error('Pool: add duplicates');
-    this.items.push(item);
+  release(instance) {
+    if (this.instances.includes(instance)) {
+      throw new Error('Pool: add duplicates');
+    }
+    this.instances.push(instance);
   }
 }
 
 // Usage
 
 const pool = new Pool();
-pool.add({ item: 1 });
-pool.add({ item: 2 });
-pool.add({ item: 3 });
+pool.release({ instance: 1 });
+pool.release({ instance: 2 });
+pool.release({ instance: 3 });
 
 for (let i = 0; i < 10; i++) {
-  console.log(pool.next());
+  console.log(pool.acquire());
 }

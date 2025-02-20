@@ -2,7 +2,7 @@
 
 class Pool {
   constructor() {
-    this.items = [];
+    this.instances = [];
     this.free = [];
     this.queue = [];
     this.current = 0;
@@ -10,64 +10,66 @@ class Pool {
     this.available = 0;
   }
 
-  async next() {
+  async acquire() {
     if (this.size === 0) return null;
     if (this.available === 0) {
       return new Promise((resolve) => {
         this.queue.push(resolve);
       });
     }
-    let item = null;
+    let instance = null;
     let free = false;
     do {
-      item = this.items[this.current];
+      instance = this.instances[this.current];
       free = this.free[this.current];
       this.current++;
       if (this.current === this.size) this.current = 0;
-    } while (!item || !free);
-    return item;
+    } while (!instance || !free);
+    return instance;
   }
 
-  add(item) {
-    if (this.items.includes(item)) throw new Error('Pool: add duplicates');
+  add(instance) {
+    if (this.instances.includes(instance)) {
+      throw new Error('Pool: add duplicates');
+    }
     this.size++;
     this.available++;
-    this.items.push(item);
+    this.instances.push(instance);
     this.free.push(true);
   }
 
   async capture() {
-    const item = await this.next();
-    if (!item) return null;
-    const index = this.items.indexOf(item);
+    const instance = await this.acquire();
+    if (!instance) return null;
+    const index = this.instances.indexOf(instance);
     this.free[index] = false;
     this.available--;
-    return item;
+    return instance;
   }
 
-  release(item) {
-    const index = this.items.indexOf(item);
-    if (index < 0) throw new Error('Pool: release unexpected item');
+  release(instance) {
+    const index = this.instances.indexOf(instance);
+    if (index < 0) throw new Error('Pool: release unexpected instance');
     if (this.free[index]) throw new Error('Pool: release not captured');
     this.free[index] = true;
     this.available++;
     if (this.queue.length > 0) {
       const resolve = this.queue.shift();
-      if (resolve) setTimeout(resolve, 0, item);
+      if (resolve) setTimeout(resolve, 0, instance);
     }
   }
 }
 
 // Usage
 
-(async () => {
+const main = async () => {
   const pool = new Pool();
-  const item1 = { item: 1 };
-  pool.add(item1);
-  const item2 = { item: 2 };
-  pool.add(item2);
-  const item3 = { item: 3 };
-  pool.add(item3);
+  const instance1 = { instance: 1 };
+  pool.add(instance1);
+  const instance2 = { instance: 2 };
+  pool.add(instance2);
+  const instance3 = { instance: 3 };
+  pool.add(instance3);
 
   const x1 = await pool.capture();
   console.log({ x1 });
@@ -86,7 +88,9 @@ class Pool {
     console.log({ x6 });
   });
 
-  pool.release(item2);
-  pool.release(item1);
-  pool.release(item3);
-})();
+  pool.release(instance2);
+  pool.release(instance1);
+  pool.release(instance3);
+};
+
+main();
