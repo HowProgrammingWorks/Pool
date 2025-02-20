@@ -1,64 +1,66 @@
 'use strict';
 
-const duplicate = (factory, n) => new Array(n).fill().map(() => factory());
+const duplicate = (factory, n) => new Array(n).fill(null).map(factory);
 
-const poolify = (factory, min, norm, max) => {
-  let allocated = norm;
-  const items = duplicate(factory, norm);
+const poolify = (factory, { size, max, step }) => {
+  let allocated = size;
+  const instances = duplicate(factory, size);
   const delayed = [];
 
-  return (par) => {
-    if (typeof par !== 'function') {
-      if (items.length < max) {
-        const request = delayed.shift();
-        if (request) {
-          const c1 = items.length;
-          console.log(`${c1}->${c1} Recycle item, pass to delayed`);
-          request(par);
-        } else {
-          const c1 = items.length;
-          items.push(par);
-          const c2 = items.length;
-          console.log(`${c1}->${c2} Recycle item, add to pool`);
-        }
-      }
-      return;
-    }
-    if (items.length < min && allocated < max) {
-      const grow = Math.min(max - allocated, norm - items.length);
+  const acquire = (callback) => {
+    const c1 = instances.length;
+    if (instances.length === 0 && allocated < max) {
+      const grow = Math.min(max - allocated, size - instances.length);
       allocated += grow;
-      const instances = duplicate(factory, grow);
-      items.push(...instances);
+      console.log({ grow });
+      const addition = duplicate(factory, grow);
+      instances.push(...addition);
     }
-    const c1 = items.length;
-    const res = items.pop();
-    const c2 = items.length;
-    if (res) {
-      console.log(`${c1}->${c2} Get from pool, pass to callback`);
-      par(res);
+    const instance = instances.pop();
+    const c2 = instances.length;
+    const delta = `Get from pool: ${c1}->${c2} of ${allocated}`;
+    if (instance) {
+      console.log(`${delta}, pass to callback`);
+      callback(instance);
     } else {
-      console.log(`${c1}->${c2} Get from pool, add callback to queue`);
-      delayed.push(par);
+      console.log(`${delta}, add callback to queue`);
+      delayed.push(callback);
     }
   };
+
+  const release = (instance) => {
+    const c1 = instances.length;
+    if (delayed.length > 0) {
+      const request = delayed.shift();
+      const delta = `Recycle item: ${c1}->${c1} of ${allocated}`;
+      console.log(`${delta}, pass to delayed`);
+      request(instance);
+    } else {
+      if (instances.length < max) {
+        instances.push(instance);
+      }
+      const c2 = instances.length;
+      const delta = `Recycle item: ${c1}->${c2} of ${allocated}`;
+      console.log(`${delta}, add to pool`);
+    }
+  };
+
+  return { acquire, release };
 };
 
 // Usage
 
-// Factory to allocate 4kb buffer
 const buffer = () => new Uint32Array(1024);
 
-// Allocate pool of 10 buffers
-const pool = poolify(buffer, 3, 5, 7);
+const pool = poolify(buffer, { size: 5, max: 7, step: 3 });
 
 let i = 0;
-
 const next = () => {
-  pool((item) => {
+  pool.acquire((data) => {
     i++;
     if (i < 20) {
       setTimeout(next, i * 10);
-      setTimeout(() => pool(item), i * 100);
+      setTimeout(() => pool.release(data), i * 100);
     }
   });
 };

@@ -12,25 +12,30 @@ class Connection {
   }
 }
 
-const pool = () => {
-  const instances = new Array(5).fill(null).map(Connection.create);
-  return (instance) => {
-    if (instance) {
-      instances.push(instance);
-      console.log('Recycle item, count =', instances.length);
-      return null;
-    }
-    const result = instances.pop();
+const POOL_SIZE = 5;
+
+const poolify = (factory) => {
+  const instances = new Array(POOL_SIZE).fill(null).map(factory);
+
+  const acquire = () => {
+    const instance = instances.pop();
     console.log('Get from pool, count =', instances.length);
-    return result;
+    return instance;
   };
+
+  const release = (instance) => {
+    instances.push(instance);
+    console.log('Recycle item, count =', instances.length);
+  };
+
+  return { acquire, release };
 };
 
 // Usage
 
-const connectionPool = pool(Connection.create);
+const pool = poolify(Connection.create);
 
 for (let i = 0; i < 7; i++) {
-  const connection = connectionPool();
+  const connection = pool.acquire();
   console.log(connection);
 }

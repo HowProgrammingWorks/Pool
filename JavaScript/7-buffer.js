@@ -1,40 +1,29 @@
 'use strict';
 
-const poolify = (factory, min, norm, max) => {
-  const duplicate = (n) => new Array(n).fill().map(() => factory());
+const duplicate = (factory, n) => new Array(n).fill(null).map(factory);
 
-  const pool = (item) => {
-    if (item) {
-      if (pool.allocated <= max) {
-        pool.items.push(item);
-      } else {
-        pool.allocated--;
-      }
+const poolify = (factory, { size, max }) => {
+  let allocated = size;
+  const instances = duplicate(factory, size);
 
-      console.dir({
-        action: 'Recycle item',
-        length: pool.items.length,
-        allocated: pool.allocated,
-      });
-      return null;
+  const acquire = () => {
+    if (instances.length === 0 && allocated < max) {
+      const grow = Math.min(max - allocated, size - instances.length);
+      allocated += grow;
+      const addition = duplicate(factory, grow);
+      instances.push(...addition);
     }
-    if (pool.items.length < min) {
-      const items = duplicate(norm - pool.items.length);
-      pool.allocated += items.length;
-      pool.items.push(...items);
-    }
-    const res = pool.items.pop();
-
-    console.dir({
-      action: 'Get item',
-      length: pool.items.length,
-      allocated: pool.allocated,
-    });
-    return res;
+    const instance = instances.pop();
+    return instance;
   };
 
-  const items = duplicate(norm);
-  return Object.assign(pool, { items, allocated: norm });
+  const release = (instance) => {
+    if (instances.length < max) {
+      instances.push(instance);
+    }
+  };
+
+  return { acquire, release };
 };
 
 const factorify =
@@ -45,17 +34,15 @@ const factorify =
 // Usage
 
 const factory = factorify(Uint32Array, 1024);
-const pool = poolify(factory, 5, 10, 13);
+const pool = poolify(factory, { size: 10, max: 13 });
 
 let i = 0;
-
 const next = () => {
-  const item = pool();
-  //console.log('Buffer size', item.length * 32);
+  const instance = pool.acquire();
   i++;
   if (i < 20) {
     setTimeout(next, i * 10);
-    setTimeout(() => pool(item), i * 100);
+    setTimeout(() => pool.release(instance), i * 100);
   }
 };
 

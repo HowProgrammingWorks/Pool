@@ -1,17 +1,20 @@
 'use strict';
 
-const pool = (factory) => {
+const poolify = (factory) => {
   const instances = new Array(5).fill(null).map(() => factory.create());
-  return (instance) => {
-    if (instance) {
-      instances.push(instance);
-      console.log('Recycle item, count =', instances.length);
-      return null;
-    }
-    const result = instances.pop();
+
+  const acquire = () => {
+    const instance = instances.pop();
     console.log('Get from pool, count =', instances.length);
-    return result;
+    return instance;
   };
+
+  const release = (instance) => {
+    instances.push(instance);
+    console.log('Recycle item, count =', instances.length);
+  };
+
+  return { acquire, release };
 };
 
 class Connection {
@@ -20,7 +23,7 @@ class Connection {
   }
 }
 
-class Factory {
+class ConnectionFactory {
   constructor() {
     this.index = 0;
   }
@@ -30,18 +33,10 @@ class Factory {
   }
 }
 
-/*
-
-const alternativeFactory = (() => {
-  let index = 0;
-  return () => new Connection(`http://10.0.0.1/${index++}`);
-})();
-
-*/
-
 // Usage
 
-const connectionFactory = new Factory();
-const connectionPool = pool(connectionFactory);
-const connection = connectionPool();
+const factory = new ConnectionFactory();
+const pool = poolify(factory);
+const connection = pool.acquire();
 console.log(connection);
+pool.release(connection);
