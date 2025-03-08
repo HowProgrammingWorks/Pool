@@ -1,21 +1,14 @@
 'use strict';
 
 const poolify = (factory, { size, max }) => {
-  const duplicate = (n) => new Array(n).fill(null).map(factory);
+  const instances = new Array(size).fill(null).map(factory);
 
-  const instances = duplicate(size);
-
-  const acquire = () => {
-    const instance = instances.pop() || factory();
-    console.log('Get from pool, count =', instances.length);
-    return instance;
-  };
+  const acquire = () => instances.pop() || factory();
 
   const release = (instance) => {
     if (instances.length < max) {
       instances.push(instance);
     }
-    console.log('Recycle item, count =', instances.length);
   };
 
   return { acquire, release };
@@ -23,19 +16,12 @@ const poolify = (factory, { size, max }) => {
 
 // Usage
 
-const buffer = () => new Uint32Array(1024);
+const createBuffer = (size) => new Uint8Array(size);
 
-const pool = poolify(buffer, { size: 10, max: 15 });
+const FILE_BUFFER_SIZE = 4096;
+const createFileBuffer = () => createBuffer(FILE_BUFFER_SIZE);
 
-let i = 0;
-const next = () => {
-  const data = pool.acquire();
-  console.log('Buffer size', data.length * 32);
-  i++;
-  if (i < 20) {
-    setTimeout(next, i * 10);
-    setTimeout(() => pool.release(data), i * 100);
-  }
-};
-
-next();
+const pool = poolify(createFileBuffer, { size: 10, max: 15 });
+const instance = pool.acquire();
+console.log({ instance });
+pool.release(instance);
