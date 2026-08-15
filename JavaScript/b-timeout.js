@@ -5,7 +5,7 @@ class Pool {
     this.instances = [];
     this.free = [];
     this.queue = [];
-    this.timeout = options.timeout || 0;
+    this.timeout = options.timeout ?? 0;
     this.current = 0;
     this.size = 0;
     this.available = 0;
