@@ -1,7 +1,13 @@
 'use strict';
 
 const poolify = (factory, { size, max }) => {
-  const instances = new Array(size).fill(null).map(factory);
+  // It seems that preallocated array with defined size
+  // and using c-like for-loop will be more efficient in terms of V8 optimisation than
+  // const instances = new Array(size).fill(null).map(factory);
+  const instances = new Array(size);
+  for(let i = 0; i < size; i++){
+    instances[i] = factory();
+  }
 
   const acquire = () => instances.pop() || factory();
 
