@@ -1,32 +1,79 @@
 'use strict';
 
-// TODO: Refactor to respect SoC principle and
-// optimize JavaScript for V8
+const poolify = (factory, size, max) => {
+  const instances = new Array(size).fill(null).map(factory);
+  const queue = [];
+  let available = instances.length;
 
-const poolify = (factory, options, size, max) => {
-  const instances = []; // Preallocate array
-  for (let i = 0; i < size; i++) { // Use Array methods instead of loop
-    const instance = factory(...options); // Avoid array destructuring
-    instances.push(instance);
-  }
-
-  return (instance) => { // Respect SoC and SOLID/SRP
-    if (instance) { // Avoid if-statement
-      if (instances.length < max) {
-        instances.push(instance);
-      }
+  const processQueue = () => {
+    while (queue.length > 0 && available > 0){
+      const { resolve } = queue.shift();
+      resolve(instances.pop());
+      available--;
     }
-    instance = instances.pop(); // Do not reassign incoming parameters
-    if (!instance) instance = factory(...options);
-    return instance;
   };
+
+  const acquire = () => {
+    return new Promise((resolve) => {
+      if(available > 0){
+        const instance = instances.pop();
+        available--;
+        resolve(instance);
+      }
+      else {
+        queue.push({ resolve });
+      }
+    });
+  };
+
+  const release = (instance) => {
+    if (instances.length < max) {
+      instances.push(instance);
+      available++;
+      processQueue();
+    }
+  };
+
+  return { acquire, release };
 };
 
 // Usage
 
 const createBuffer = (size) => new Uint8Array(size);
-const pool = poolify(createBuffer, [4096], 10, 15);
 
-const instance = pool();
-console.log({ instance });
-pool(instance);
+const bufferSize = 4096;
+const createFileBuffer = () => createBuffer(bufferSize);
+
+const size = 2;
+const max = 4;
+const pool = poolify(createFileBuffer, size, max);
+
+(async () => {
+  const instance1 = await pool.acquire();
+  console.log('Acquired instance 1', instance1);
+  setTimeout(() => {
+    console.log('Releasing instance 1');
+    pool.release(instance1);
+  }, 1000);
+
+  const instance2 = await pool.acquire();
+  console.log('Acquired instance 2', instance2);
+  setTimeout(() => {
+    console.log('Releasing instance 2');
+    pool.release(instance2);
+  }, 1500);
+
+  const instance3 = await pool.acquire();
+  console.log('Acquired instance 3', instance3);
+  setTimeout(() => {
+    console.log('Releasing instance 3');
+    pool.release(instance3);
+  }, 1000);
+
+  const instance4 = await pool.acquire();
+  console.log('Acquired instance 4', instance4);
+  setTimeout(() => {
+    console.log('Releasing instance 4');
+    pool.release(instance4);
+  }, 1500);
+})();
